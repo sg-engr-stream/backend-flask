@@ -6,7 +6,7 @@ install:
 script: pytest
 deploy:
   provider: heroku
-  api_key: g8jWm8G2RaKlyi+lAPUNqe0ufcRGWUMC5W7z62P9Uqyr1HOWN7NhPdeambAUqPZRvibD4dPii/FX06N6zvvbdtLSYFu7SJHAecj4rUP/X1tH4o/CQtTnSTbRTypY2cCGWvzZcm7nv1u5iraSWGJzA13L1tHtxDr9NxlkvzeMB/02CwKAg3WZ81bliUUhVe8jzer5f3AkgD+iy2nFRYJp1nWIc9RlrQBUXA/+u4/MJ21D4/D52rRr+8f2gsoqn3nSUgxGIAIxv7ctada/x0zaN28d5eG1ujGz1STBd1JE5Xa0JqAsFgV/6OBMSUoxTRQUfSWCv63ZWq4GoBAqmmYu2jLveUgPQJaX++xuqRvGX4hji/n4WZAcXNuNmVsdWsxs+JSTZ7lSyRssoTnQHyaqjycY18SYv+sdKFflsaBUyqPV5YrTh93HXo4aqLE4lDImrUmfy5eDY40cXVaypWp8MBGlvOj9U/l6W4IB31mWZkdy0vfEXPLDQl65ZTLVK5te8Y07yHcPk5QO7Vxdtiqa0mD28ucr4bTy9q15V1+B+qPS5mflWD0eXM4dBRvIswov0VxflJ+ZuyMTzgBpWzUkmTuaOTs7AquVxnSZnxtPjI1+oaw8oFBjUDgi3QGWXP90jZosHO7pFy3kV2VyZRdmK0MAJpfxz9oAzdoZxpkz6+4=
+  api_key: 3108a2ec-278f-4853-9df1-e8eb640dba79
   app:
     stage: short-url-stage
   on:

@@ -1,0 +1,4 @@
+# Auto-Generated
+*.pyc
+__pycache__/
+.idea

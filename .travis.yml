@@ -6,7 +6,7 @@ install:
 script: pytest
 deploy:
   provider: heroku
-  api_key: 3108a2ec-278f-4853-9df1-e8eb640dba79
+  api_key: 8c55cc26-9ec7-4dcc-825a-fbb879174dff
   app:
     stage: short-url-stage
   on:

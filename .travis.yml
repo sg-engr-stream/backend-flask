@@ -2,9 +2,11 @@ sudo: false
 language: python
 python: 3.8.5
 install:
-- pip install codecov
-after_success:
-- bash <(curl -s https://codecov.io/bash)
+- pip install -r requirements.txt
+- pip install .
+virtualenv:
+  system_site_packages: true
+script: python3 app.py || python app.py
 deploy:
   provider: heroku
   api_key:

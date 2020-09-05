@@ -7,7 +7,4 @@ script: pytest
 deploy:
   provider: heroku
   api_key: 8c55cc26-9ec7-4dcc-825a-fbb879174dff
-  app:
-    stage: short-url-stage
-  on:
-    all_branches: true
+  app: short-url-stage

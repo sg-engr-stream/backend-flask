@@ -1,7 +1,6 @@
 
 def test_none():
-    """
-    Test nothing.
+    """ Test nothing.
 
     Just to get started.
     """

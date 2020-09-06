@@ -8,7 +8,7 @@ install:
 script: coverage run -m pytest
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-  - bash <(curl -Ls https://coverage.codacy.com/get.sh)
+  - bash <(curl -Ls https://coverage.codacy.com/get.sh) -r coverage.xml
 deploy:
   provider: heroku
   api_key: 8c55cc26-9ec7-4dcc-825a-fbb879174dff

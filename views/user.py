@@ -3,7 +3,7 @@ from sqlalchemy import exc
 from app import app, db, logging
 import models.auth_model as au_model
 from datetime import datetime
-import services.auth_service as au_ser
+# import services.auth_service as au_ser
 
 
 @app.route('/user/add/', methods=['POST'])

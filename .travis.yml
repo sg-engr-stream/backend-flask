@@ -4,6 +4,8 @@ python: 3.8.5
 install:
 - pip install -r requirements.txt
 script: pytest
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 deploy:
   provider: heroku
   api_key: 8c55cc26-9ec7-4dcc-825a-fbb879174dff

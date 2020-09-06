@@ -2,3 +2,6 @@
 *.pyc
 __pycache__/
 .idea
+flask_monitoringdashboard.db
+.pytest_cache
+.coverage

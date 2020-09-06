@@ -14,16 +14,6 @@ class User(db.Model):
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __str__(self):
-        """Return the details after creating new user."""
-        return '''
-            {
-                'name': {},
-                'username': {},
-                'email': {}
-            }
-        '''.format(self.name, self.username, self.email)
-
     def set_password(self, password):
         """Create hashed password."""
         self.password = generate_password_hash(

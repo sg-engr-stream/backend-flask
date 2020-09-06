@@ -18,6 +18,11 @@ dashboard.bind(app)
 logging.basicConfig(level=logging.DEBUG)
 
 import models.auth_model
+import models.card_model
+import models.card_access_model
+import models.group_model
+import models.group_access_model
+import models.group_cards
 import views.user
 
 

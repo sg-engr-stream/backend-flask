@@ -10,6 +10,7 @@ from datetime import datetime
 def add_user():
     data = request.json
     new_user = au_model.User(name=data['name'], username=data['username'], email=data['email'])
+    new_user.set_password(data['secret'])
     try:
         db.session.add(new_user)
         db.session.commit()

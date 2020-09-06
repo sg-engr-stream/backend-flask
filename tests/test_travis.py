@@ -1,6 +1,8 @@
 
 def test_none():
-    """ Test nothing.
+    """
+    Test nothing.
 
-    Just to get started. """
+    Just to get started.
+    """
     assert True is True

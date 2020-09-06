@@ -63,18 +63,18 @@ def update_pass_by_username(user_id):
 
 
 @app.route('/user/action/<type>/', methods=['POST'])
-def deactivate_by_username(type):
+def action_by_username(action_type):
     data = request.json
     update_user = au_model.User.query.filter_by(username=data['username']).first()
     if update_user is not None:
         msg_str = ''
-        if type == 'deactivate':
+        if action_type == 'deactivate':
             update_user.deactivated = True
             msg_str = 'deactivated'
-        elif type == 'activate':
+        elif action_type == 'activate':
             update_user.deactivated = False
             msg_str = 'activated'
-        elif type == 'delete':
+        elif action_type == 'delete':
             update_user.deactivated = True
             update_user.deleted = True
             msg_str = 'deleted'

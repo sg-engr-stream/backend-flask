@@ -25,8 +25,8 @@ def add_user():
 @app.route('/user/id/<user_id>', methods=['GET'])
 def get_user_by_username(user_id):
     user = au_model.User.query.filter_by(username=user_id).scalar()
-    auth_status, auth_user = au_ser.check_auth_token(request.headers)
-    print(auth_user == user_id)
+    # auth_status, auth_user = au_ser.check_auth_token(request.headers)
+    # print(auth_user == user_id)
 
     if user is not None:
         return jsonify({'username': user.username, 'name': user.name, 'email': user.email}), 200

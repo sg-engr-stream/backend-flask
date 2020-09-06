@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from sqlalchemy import exc
-from app import app, db
+from app import app, db, logging
 import models.auth_model as au_model
 from datetime import datetime
 import services.auth_service as au_ser
@@ -17,6 +17,7 @@ def add_user():
         db.session.expunge(new_user)
         db.session.close()
     except exc.IntegrityError as e:
+        logging.error(e)
         return {'response': 'Username or Email already exist'}
     return res
 

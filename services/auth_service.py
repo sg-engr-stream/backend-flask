@@ -1,5 +1,6 @@
 from basicauth import decode, DecodeError
 import models.auth_model as au_model
+from app import logging
 
 
 def check_auth_token(headers):
@@ -12,5 +13,6 @@ def check_auth_token(headers):
                 return True, user
         return False, None
     except DecodeError as e:
+        logging.error(e)
         return False, None
 

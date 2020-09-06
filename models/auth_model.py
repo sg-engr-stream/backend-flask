@@ -16,9 +16,9 @@ class User(db.Model):
 
     def __str__(self):
         return '''{
-            'name': {0}
-            'username': {1},
-            'email': {2}
+            'name': {}
+            'username': {},
+            'email': {}
         }'''.format(self.name, self.username, self.email)
 
     def set_password(self, password):

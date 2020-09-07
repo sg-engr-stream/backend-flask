@@ -9,6 +9,8 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(200), unique=False, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    verified = db.Column(db.Boolean, default=False)
+    verification_code = db.Column(db.String(6))
     deactivated = db.Column(db.Boolean, default=False)
     deleted = db.Column(db.Boolean, default=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)

@@ -1,0 +1,1 @@
+D:\Github\sg-engr-stream\win-venv\Scripts\activate

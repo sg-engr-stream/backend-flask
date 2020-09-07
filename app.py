@@ -3,14 +3,16 @@ import logging
 import flask_monitoringdashboard as dashboard
 from flask_sqlalchemy import SQLAlchemy
 import socket
+import services.psql_config
 
 app = Flask(__name__)
+app_settings = ''
 if socket.gethostname() == 'DESKTOP-PHOENIX':
-    import env.local as env_config
+    app_settings = services.psql_config.DevelopmentConfig
 else:
-    import env.production as env_config
+    app_settings = services.psql_config.ProductionConfig
 
-app.config.from_object(env_config.APP_SETTINGS)
+app.config.from_object(app_settings)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 dashboard.bind(app)

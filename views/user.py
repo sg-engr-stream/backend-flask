@@ -46,8 +46,8 @@ def update_user_by_username(user_id):
     if auth_user == user_id:
         update_user = au_model.User.query.filter_by(username=user_id).first()
         if update_user is not None:
-            update_user.name = data['name'] if 'name' in data.keys() else update_user.name
-            update_user.email = data['email'] if 'email' in data.keys() else update_user.email
+            update_user.name = data['name'] if 'name' in list(data.keys()) else update_user.name
+            update_user.email = data['email'] if 'email' in list(data.keys()) else update_user.email
             update_user.last_updated = datetime.utcnow()
             db.session.commit()
             res = {'username': update_user.username, 'name': update_user.name, 'email': update_user.email}
@@ -61,7 +61,7 @@ def update_user_by_username(user_id):
 @app.route(s_vars.api_v1 + '/user/update_pass/<user_id>', methods=['POST'])
 def update_pass_by_username(user_id):
     data = request.json
-    if 'secret' not in data.keys():
+    if 'secret' not in list(data.keys()):
         return s_vars.bad_request, 400
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
     if auth_user == user_id:
@@ -81,7 +81,7 @@ def update_pass_by_username(user_id):
 @app.route(s_vars.api_v1 + '/user/action/<type>/', methods=['POST'])
 def action_by_username(action_type):
     data = request.json
-    if 'username' not in data.keys():
+    if 'username' not in list(data.keys()):
         return s_vars.bad_request, 400
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
     if auth_user == data['username']:
@@ -99,7 +99,7 @@ def action_by_username(action_type):
                 update_user.deleted = True
                 msg_str = 'deleted'
             else:
-                return jsonify({'response': 'Action not available'}), 404
+                return s_vars.action_not_available, 404
             update_user.last_updated = datetime.utcnow()
             db.session.commit()
             res = {'response': 'User {} {}'.format(update_user.username, msg_str)}
@@ -113,7 +113,7 @@ def action_by_username(action_type):
 @app.route(s_vars.api_v1 + '/user/login_check/<user_id>', methods=['POST'])
 def check_if_can_login(user_id):
     data = request.json
-    if 'secret' not in data.keys():
+    if 'secret' not in list(data.keys()):
         return s_vars.bad_request, 400
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
     if auth_user == user_id:

@@ -6,3 +6,4 @@ flask_monitoringdashboard.db
 .pytest_cache
 .coverage
 migrations
+start-venv.bat

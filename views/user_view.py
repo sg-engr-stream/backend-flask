@@ -38,11 +38,11 @@ def add_user():
     return res, 200
 
 
-@app.route(s_vars.api_v1 + '/user/id/<user_id>', methods=['GET'])
-def get_user_by_username(user_id):
-    user = User.query.filter_by(username=user_id).scalar()
+@app.route(s_vars.api_v1 + '/user/id/<username>', methods=['GET'])
+def get_user_by_username(username):
+    user = User.query.filter_by(username=username).scalar()
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
-    if auth_user == user_id:
+    if auth_user == username:
         if user is not None:
             return jsonify({'username': user.username, 'name': user.name,
                             'email': user.email, 'verified': user.verified}), 200
@@ -52,25 +52,25 @@ def get_user_by_username(user_id):
         return s_vars.not_authorized, 401
 
 
-@app.route(s_vars.api_v1 + '/user/available/<user_id>', methods=['GET'])
-def get_availability_user(user_id):
+@app.route(s_vars.api_v1 + '/user/available/<username>', methods=['GET'])
+def get_availability_user(username):
     """Get username availability from db"""
-    user_from_db = User.query.filter_by(username=user_id).first()
+    user_from_db = User.query.filter_by(username=username).first()
     if user_from_db is None:
         return s_vars.user_available, 200
     else:
         return s_vars.user_already_exist, 409
 
 
-@app.route(s_vars.api_v1 + '/user/verify_status/<user_id>', methods=['GET'])
-def get_user_verification(user_id):
+@app.route(s_vars.api_v1 + '/user/verify_status/<username>', methods=['GET'])
+def get_user_verification(username):
     """Get user verification from db"""
-    user_from_db = User.query.filter_by(username=user_id).first()
+    user_from_db = User.query.filter_by(username=username).first()
     if user_from_db is None:
         return s_vars.user_not_exist, 400
     else:
         auth_status, auth_user = au_ser.check_auth_token(request.headers)
-        if auth_user == user_id:
+        if auth_user == username:
             if auth_status:
                 return s_vars.verified_user, 200
             else:
@@ -79,35 +79,39 @@ def get_user_verification(user_id):
             return s_vars.not_authorized, 401
 
 
-@app.route(s_vars.api_v1 + '/user/update/<user_id>', methods=['POST'])
-def update_user_by_username(user_id):
+@app.route(s_vars.api_v1 + '/user/update/<username>', methods=['POST'])
+def update_user_by_username(username):
     data = request.json
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
-    if auth_user == user_id:
-        update_user = User.query.filter_by(username=user_id).first()
-        if update_user is not None:
-            if update_user.verified:
-                return s_vars.cannot_change_email, 403
-            update_user.name = data['name'] if 'name' in list(data.keys()) else update_user.name
-            update_user.email = data['email'] if 'email' in list(data.keys()) else update_user.email
-            update_user.last_updated = datetime.utcnow()
-            db.session.commit()
-            res = {'username': update_user.username, 'name': update_user.name, 'email': update_user.email}
-            return jsonify(res), 200
+    try:
+        if auth_user == username:
+            update_user = User.query.filter_by(username=username).first()
+            if update_user is not None:
+                keys = list(data.keys())
+                if update_user.verified and 'email' in keys:
+                    return s_vars.cannot_change_email, 403
+                update_user.name = data['name'] if 'name' in keys else update_user.name
+                update_user.email = data['email'] if 'email' in keys else update_user.email
+                update_user.last_updated = datetime.utcnow()
+                db.session.commit()
+                res = {'username': update_user.username, 'name': update_user.name, 'email': update_user.email}
+                return jsonify(res), 200
+            else:
+                return s_vars.user_not_exist, 404
         else:
-            return s_vars.user_not_exist, 404
-    else:
-        return s_vars.not_authorized, 401
+            return s_vars.not_authorized, 401
+    except KeyError:
+        return s_vars.bad_request, 400
 
 
-@app.route(s_vars.api_v1 + '/user/update_pass/<user_id>', methods=['POST'])
-def update_pass_by_username(user_id):
+@app.route(s_vars.api_v1 + '/user/update_pass/<username>', methods=['POST'])
+def update_pass_by_username(username):
     data = request.json
     if 'secret' not in list(data.keys()):
         return s_vars.bad_request, 400
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
-    if auth_user == user_id:
-        update_user = User.query.filter_by(username=user_id).first()
+    if auth_user == username:
+        update_user = User.query.filter_by(username=username).first()
         if update_user is not None:
             update_user.set_password(data['secret'])
             update_user.last_updated = datetime.utcnow()
@@ -170,14 +174,14 @@ def action_by_username(action_type):
         return s_vars.not_authorized, 401
 
 
-@app.route(s_vars.api_v1 + '/user/login_check/<user_id>', methods=['POST'])
-def check_if_can_login(user_id):
+@app.route(s_vars.api_v1 + '/user/login_check/<username>', methods=['POST'])
+def check_if_can_login(username):
     data = request.json
     if 'secret' not in list(data.keys()):
         return s_vars.bad_request, 400
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
-    if auth_user == user_id:
-        user = User.query.filter_by(username=user_id).first()
+    if auth_user == username:
+        user = User.query.filter_by(username=username).first()
         if user is not None:
             if user.check_password(data['secret']):
                 res = {'response': 'Can login'}

@@ -13,7 +13,7 @@ class Card(db.Model):
     short_url = db.Column(db.String(50), unique=True, nullable=False)
     redirect_url = db.Column(db.String(500), nullable=False)
     expiry = db.Column(db.DateTime, default=None, nullable=True)
-    status = db.Column(db.Boolean, default=False)
+    status = db.Column(db.Boolean, default=True)
     deleted = db.Column(db.Boolean, default=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow)

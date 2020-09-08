@@ -7,5 +7,5 @@ def id_gen(length=20):
     return ''.join((random.choice(letters_and_digits) for i in range(length)))
 
 
-def code_gen():
-    return ''.join((random.choice(string.digits) for i in range(6)))
+def code_gen(length=6):
+    return ''.join((random.choice(string.digits) for i in range(length)))

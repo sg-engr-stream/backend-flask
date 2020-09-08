@@ -3,6 +3,7 @@ from sqlalchemy import exc
 from app import app, db, logging
 from models.auth_model import User
 from models.card_model import Card
+from services.common_service import access_from_card_access
 from datetime import datetime
 from dateutil import parser
 import services.static_vars as s_vars
@@ -20,7 +21,7 @@ def add_card():
     else:
         try:
             if owner != 'public':
-                user = User.query.filter_by(username=owner).first()
+                user = User.query.filter_by(username=owner, deactivated=False, deleted=False).first()
                 if user is None:
                     return s_vars.user_not_exist, 401
             short_url = data['short_url'] if 'short_url' in list(data.keys()) else id_gen(10)
@@ -63,7 +64,7 @@ def get_card(card_id):
     if card_from_db is None:
         return s_vars.card_not_exist, 404
     else:
-        if auth_user == card_from_db.owner or card_from_db.owner == 'public':
+        if auth_user == card_from_db.owner or card_from_db.owner == 'public' or access_from_card_access(card_id, auth_user) != '':
             return jsonify({
                 'owner': card_from_db.owner,
                 'card_id': card_from_db.card_id,
@@ -106,7 +107,7 @@ def action_for_card(action_type):
         return s_vars.bad_request, 400
     if card_from_db is None:
         return s_vars.card_not_exist, 404
-    elif auth_user == owner or card_from_db.owner == 'public':
+    elif auth_user == owner or card_from_db.owner == 'public' or access_from_card_access(data['card_id'], auth_user) == 'RW':
         msg_str = ''
         if action_type == 'deactivate':
             card_from_db.status = True
@@ -142,7 +143,7 @@ def update_card(card_id):
         return s_vars.bad_request, 400
     if card_from_db is None:
         return s_vars.card_not_exist, 404
-    elif auth_user == owner or card_from_db.owner == 'public':
+    elif auth_user == owner or card_from_db.owner == 'public' or access_from_card_access(card_id, auth_user) == 'RW':
         keys = list(data.keys())
         card_from_db.owner = data['owner'] if 'owner' in keys else card_from_db.owner
         card_from_db.title = data['title'] if 'title' in keys else card_from_db.title

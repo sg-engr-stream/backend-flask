@@ -18,6 +18,7 @@ db = SQLAlchemy(app)
 dashboard.bind(app)
 
 logging.basicConfig(level=logging.DEBUG)
+app.url_map.strict_slashes = False
 
 import models.auth_model
 import models.card_model

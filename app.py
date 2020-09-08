@@ -27,8 +27,9 @@ import models.group_model
 import models.group_access_model
 import models.group_cards
 
-import views.user
-import views.card
+import views.user_view
+import views.card_view
+import views.card_access_view
 
 
 @app.route('/')

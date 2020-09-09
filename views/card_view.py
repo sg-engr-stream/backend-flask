@@ -1,9 +1,9 @@
 from flask import request, jsonify
 from sqlalchemy import exc
 from app import app, db, logging
-from models.auth_model import User
+import models.auth_model as user_model
 from models.card_model import Card
-from services.common_service import access_from_card_access
+from services.common_service import access_from_card_access, change_card_activation, delete_card
 from datetime import datetime
 from dateutil import parser
 import services.static_vars as s_vars
@@ -21,7 +21,7 @@ def add_card():
     else:
         try:
             if owner != 'public':
-                user = User.query.filter_by(username=owner, deactivated=False, deleted=False).first()
+                user = user_model.User.query.filter_by(username=owner, deactivated=False).first()
                 if user is None:
                     return s_vars.user_not_exist, 401
             short_url = data['short_url'] if 'short_url' in list(data.keys()) else id_gen(10)
@@ -41,13 +41,7 @@ def add_card():
             )
             db.session.add(card)
             db.session.commit()
-            res = {
-                'owner': card.owner,
-                'title': card.title,
-                'description': card.description,
-                'card_id': card.card_id,
-                'short_url': card.short_url
-            }
+            res = card.__repr__()
             db.session.expunge(card)
             db.session.close()
         except KeyError:
@@ -65,18 +59,7 @@ def get_card(card_id):
         return s_vars.card_not_exist, 404
     else:
         if auth_user == card_from_db.owner or card_from_db.owner == 'public' or access_from_card_access(card_id, auth_user) != '':
-            return jsonify({
-                'owner': card_from_db.owner,
-                'card_id': card_from_db.card_id,
-                'title': card_from_db.title,
-                'description': card_from_db.description,
-                'icon_url': card_from_db.icon_url,
-                'short_url': card_from_db.short_url,
-                'redirect_url': card_from_db.redirect_url,
-                'expiry': card_from_db.expiry,
-                'status': card_from_db.status,
-                'deleted': card_from_db.deleted
-            }), 200
+            return jsonify(card_from_db.__repr__()), 200
         else:
             return s_vars.not_authorized, 401
 
@@ -110,20 +93,19 @@ def action_for_card(action_type):
     elif auth_user == owner or card_from_db.owner == 'public' or access_from_card_access(data['card_id'], auth_user) == 'RW':
         msg_str = ''
         if action_type == 'deactivate':
-            card_from_db.status = True
+            change_card_activation(card_from_db.card_id, False)
             msg_str = 'deactivated'
         elif action_type == 'activate':
-            card_from_db.status = False
+            change_card_activation(card_from_db.card_id, True)
             msg_str = 'activated'
         elif action_type == 'delete':
-            card_from_db.status = True
-            card_from_db.deleted = True
+            delete_card(card_from_db.card_id)
             msg_str = 'deleted'
         else:
             return s_vars.action_not_available, 404
         card_from_db.last_updated = datetime.utcnow()
         db.session.commit()
-        res = {'response': 'Card \'{}\' {}'.format(card_from_db.title, msg_str)}
+        res = {'result': card_from_db.__repr__()}
         return jsonify(res), 200
     else:
         return s_vars.not_authorized, 401
@@ -154,7 +136,7 @@ def update_card(card_id):
         card_from_db.expiry = parser.parse(data['expiry']) if 'expiry' in keys else card_from_db.expiry
         card_from_db.last_updated = datetime.utcnow()
         db.session.commit()
-        res = {'response': 'Card \'{}\' updated'.format(card_from_db.title)}
+        res = {'result': card_from_db.__repr__()}
         return jsonify(res), 200
     else:
         return s_vars.not_authorized, 401

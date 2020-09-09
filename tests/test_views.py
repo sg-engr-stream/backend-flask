@@ -79,19 +79,6 @@ def test_activate_user(app, client):
     assert res.status_code == 200
 
 
-def test_verify_user(app, client):
-    user_from_db = User.query.filter_by(username='test').first()
-    data = {
-        'username': 'test',
-        'verification_code': user_from_db.verification_code
-    }
-    res = client.post('/api/v1/user/action/verify/',
-                      headers={'shorturl-access-token': encode('test', 'alpha').split(' ')[1],
-                               'Content-Type': 'application/json'},
-                      data=json.dumps(data))
-    assert res.status_code == 200
-
-
 def test_resend_verification_mail(app, client):
     data = {
         'username': 'test'
@@ -103,23 +90,17 @@ def test_resend_verification_mail(app, client):
     assert res.status_code == 200
 
 
-def test_delete_user(app, client):
+def test_verify_user(app, client):
+    user_from_db = User.query.filter_by(username='test').first()
     data = {
-        'username': 'test'
+        'username': 'test',
+        'verification_code': user_from_db.verification_code
     }
-    res = client.post('/api/v1/user/action/delete',
+    res = client.post('/api/v1/user/action/verify/',
                       headers={'shorturl-access-token': encode('test', 'alpha').split(' ')[1],
                                'Content-Type': 'application/json'},
                       data=json.dumps(data))
     assert res.status_code == 200
-
-
-def test_undelete_user(app, client):
-    user_from_db = User.query.filter_by(username='test').first()
-    user_from_db.deactivated = False
-    user_from_db.deleted = False
-    db.session.commit()
-    assert True
 
 
 # card test cases
@@ -253,4 +234,16 @@ def test_update_pvt_card_2(app, client):
     card_from_db = Card.query.filter_by(short_url='test_url_pvt').first()
     res = client.post('/api/v1/card/update/' + card_from_db.card_id,
                      headers={'Content-Type': 'application/json'}, data=json.dumps(data))
+    assert res.status_code == 200
+
+
+# test user delete in last
+def test_delete_user(app, client):
+    data = {
+        'username': 'test'
+    }
+    res = client.post('/api/v1/user/action/delete',
+                      headers={'shorturl-access-token': encode('test', 'alpha').split(' ')[1],
+                               'Content-Type': 'application/json'},
+                      data=json.dumps(data))
     assert res.status_code == 200

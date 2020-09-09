@@ -13,7 +13,6 @@ class User(db.Model):
     verification_code = db.Column(db.String(6))
     verification_code_expiry = db.Column(db.DateTime, nullable=False)
     deactivated = db.Column(db.Boolean, default=False)
-    deleted = db.Column(db.Boolean, default=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -31,3 +30,15 @@ class User(db.Model):
     def set_verification_expiry(self):
         """Set expiry time for verification code."""
         self.verification_code_expiry = datetime.utcnow() + timedelta(minutes=10)
+
+    def __repr__(self):
+        """Return json object with user details"""
+        return {
+            'name': self.name,
+            'username': self.username,
+            'email': self.email,
+            'verified': self.verified,
+            'deactivated': self.deactivated,
+            'date_created': self.date_created.isoformat(),
+            'last_updated': self.last_updated.isoformat()
+        }

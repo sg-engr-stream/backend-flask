@@ -3,7 +3,7 @@ from sqlalchemy import exc
 from app import app, db, logging
 import models.auth_model as user_model
 from models.card_model import Card
-from services.common_service import access_from_card_access, change_card_activation, delete_card
+from services.common_service import access_from_card_access, change_card_activation, delete_card, check_expiry_and_return
 from datetime import datetime
 from dateutil import parser
 import services.static_vars as s_vars
@@ -30,6 +30,7 @@ def add_card():
                 return msg, resp_code
             keys = list(data.keys())
             card = Card(
+                created_by=owner,
                 owner=owner,
                 card_id=id_gen(),
                 title=data['title'],
@@ -127,6 +128,8 @@ def update_card(card_id):
         return s_vars.card_not_exist, 404
     elif auth_user == owner or card_from_db.owner == 'public' or access_from_card_access(card_id, auth_user) == 'RW':
         keys = list(data.keys())
+        if card_from_db.owner == 'public' and card_from_db.created_by != owner and 'owner' in keys:
+            return s_vars.cannot_change_owner, 403
         card_from_db.owner = data['owner'] if 'owner' in keys else card_from_db.owner
         card_from_db.title = data['title'] if 'title' in keys else card_from_db.title
         card_from_db.description = data['description'] if 'description' in keys else card_from_db.description
@@ -140,3 +143,22 @@ def update_card(card_id):
         return jsonify(res), 200
     else:
         return s_vars.not_authorized, 401
+
+
+@app.route(s_vars.api_v1 + '/short_url/<short_url>/', methods=['GET'])
+def return_redirect_url(short_url):
+    auth_status, auth_user = au_ser.check_auth_token(request.headers)
+    if auth_user == '':
+        auth_user = 'public'
+    card_with_short_url = Card.query.filter_by(short_url=short_url, status=True).first()
+    if card_with_short_url is None:
+        return jsonify({'result': 'failure'}), 404
+    else:
+        if auth_user == card_with_short_url.owner or card_with_short_url.owner == 'public':
+            return check_expiry_and_return(card_with_short_url.expiry, card_with_short_url.redirect_url)
+        else:
+            read_card_access = [access_from_card_access(card_id=card_with_short_url.card_id, auth_user=user) for user in ['public', auth_user]]
+            if 'RW' in read_card_access or 'RO' in read_card_access:
+                return check_expiry_and_return(card_with_short_url.expiry, card_with_short_url.redirect_url)
+            else:
+                return s_vars.not_authorized, 401

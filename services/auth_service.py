@@ -10,10 +10,10 @@ def check_auth_token(headers):
             user, passwd = decode(token)
             user_in_db = au_model.User.query.filter_by(username=user).first()
             if user_in_db is not None:
-                if user_in_db.verified:
-                    return False, user
                 if user_in_db.check_password(passwd):
-                    return True, user
+                    if user_in_db.verified:
+                        return True, user
+                    return False, user
             return False, ''
         except DecodeError as e:
             logging.error(e)

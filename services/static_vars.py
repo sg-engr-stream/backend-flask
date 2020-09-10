@@ -21,4 +21,5 @@ with app.app_context():
     not_verified_user = jsonify({'response': 'User is not verified.'})
 
     cannot_give_card_access = jsonify({'response': 'Cannot give access. You are read only or not authorized.'})
+    cannot_change_owner = jsonify({'response': 'Ownership cannot be changed for public owned cards not created by you.'})
     api_v1 = '/api/v1'

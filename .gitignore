@@ -7,3 +7,4 @@ flask_monitoringdashboard.db
 .coverage
 migrations
 start-venv.bat
+logs

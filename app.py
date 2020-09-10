@@ -1,16 +1,23 @@
-from flask import Flask
+from flask import Flask, request, send_from_directory
 import logging
+from logging.handlers import RotatingFileHandler
+from datetime import datetime
+from time import strftime
+import traceback
 import flask_monitoringdashboard as dashboard
 from flask_sqlalchemy import SQLAlchemy
 import socket
 import services.psql_config
+import os
 
 app = Flask(__name__)
 app_settings = ''
 if socket.gethostname() == 'DESKTOP-PHOENIX':
     app_settings = services.psql_config.DevelopmentConfig
+    dashboard.config.init_from('dboard/config_local.cfg')
 else:
     app_settings = services.psql_config.ProductionConfig
+    dashboard.config.init_from('dboard/config_prod.cfg')
 
 app.config.from_object(app_settings)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -19,6 +26,13 @@ dashboard.bind(app)
 
 logging.basicConfig(level=logging.DEBUG)
 app.url_map.strict_slashes = False
+
+today = datetime.utcnow().strftime('%Y-%m-%d')
+os.makedirs('logs', exist_ok=True)
+handler = RotatingFileHandler('logs/app_' + today + '.log', maxBytes=100000, backupCount=3)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
 
 import models.auth_model
 import models.card_model
@@ -35,6 +49,42 @@ import views.card_access_view
 @app.route('/')
 def hello_world():
     return 'Hello World!'
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+
+@app.after_request
+def after_request(response):
+    # this if avoids the duplication of registry in the log,
+    # since that 500 is already logged via @app.errorhandler
+    if response.status_code != 500:
+        ts = strftime('[%Y-%b-%d %H:%M]')
+        logger.error('%s %s %s %s %s %s %s',
+                     ts,
+                     request.remote_addr,
+                     request.method,
+                     request.scheme,
+                     request.full_path,
+                     response.status, response.json)
+    return response
+
+
+@app.errorhandler(Exception)
+def exceptions(e):
+    ts = strftime('[%Y-%b-%d %H:%M]')
+    tb = traceback.format_exc()
+    logger.error('%s %s %s %s %s 5xx INTERNAL SERVER ERROR\n%s',
+                 ts,
+                 request.remote_addr,
+                 request.method,
+                 request.scheme,
+                 request.full_path,
+                 tb)
+    return "Internal Server Error", 500
 
 
 if __name__ == '__main__':

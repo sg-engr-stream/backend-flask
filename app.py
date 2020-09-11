@@ -1,4 +1,5 @@
 from flask import Flask, request, send_from_directory
+from flask_cors import CORS
 import logging
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
@@ -11,6 +12,7 @@ import services.psql_config
 import os
 
 app = Flask(__name__)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 app_settings = ''
 if socket.gethostname() == 'DESKTOP-PHOENIX':
     app_settings = services.psql_config.DevelopmentConfig

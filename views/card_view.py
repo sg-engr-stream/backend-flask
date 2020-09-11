@@ -9,6 +9,7 @@ from dateutil import parser
 import services.static_vars as s_vars
 import services.auth_service as au_ser
 from services.generators import id_gen
+from services.email_service import send_mail
 
 
 @app.route(s_vars.api_v1 + '/card/add/', methods=['POST'])
@@ -20,10 +21,13 @@ def add_card():
         return s_vars.not_authorized, 401
     else:
         try:
+            user = None
             if owner != 'public':
                 user = user_model.User.query.filter_by(username=owner, deactivated=False).first()
                 if user is None:
                     return s_vars.user_not_exist, 401
+                if not user.verified:
+                    return s_vars.not_verified_user, 403
             short_url = data['short_url'] if 'short_url' in list(data.keys()) else id_gen(10)
             msg, resp_code = get_availability_su(short_url)
             if resp_code == 409:
@@ -43,6 +47,12 @@ def add_card():
             db.session.add(card)
             db.session.commit()
             res = card.__repr__()
+            if owner != 'public':
+                send_mail(user.email, 'ShortUrl - Create Request', '''Hi {0},
+                You have created new shorturl with below details:
+                Name: {0},
+                
+                '''.format(user.name))
             db.session.expunge(card)
             db.session.close()
         except KeyError:

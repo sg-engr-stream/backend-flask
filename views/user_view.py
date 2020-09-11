@@ -55,6 +55,9 @@ def get_user_by_username(username):
 @app.route(s_vars.api_v1 + '/user/available/<username>', methods=['GET'])
 def get_availability_user(username):
     """Get username availability from db"""
+    if username == 'public':
+        return s_vars.cannot_create_user, 403
+
     user_from_db = user_model.User.query.filter_by(username=username).first()
     if user_from_db is None:
         return s_vars.user_available, 200

@@ -29,6 +29,7 @@ def add_card():
                 if not user.verified:
                     return s_vars.not_verified_user, 403
             short_url = data['short_url'] if 'short_url' in list(data.keys()) else id_gen(10)
+
             msg, resp_code = get_availability_su(short_url)
             if resp_code == 409:
                 return msg, resp_code
@@ -40,7 +41,7 @@ def add_card():
                 title=data['title'],
                 description=data['description'],
                 icon_url=data['icon_url'] if 'icon_url' in keys else None,
-                short_url=short_url,
+                short_url=data['host'] + '/' + short_url,
                 redirect_url=data['redirect_url'],
                 expiry=parser.parse(data['expiry']) if 'expiry' in keys else None,
             )
@@ -50,13 +51,13 @@ def add_card():
             if owner != 'public':
                 send_mail(user.email, 'ShortUrl - Create Request', '''Hi {0},
                 You have created new shorturl with below details:
-                Name: {0},
+                Owner: {0},
                 Title: {1},
                 Description: {2},
                 ShortUrl: {3},
                 RedirectUrl: {4},
                 Expiry: {5}
-                '''.format(res.name, res.title, res.description, res.short_url, res.redirect_url, res.expiry))
+                '''.format(res['owner'], res['title'], res['description'], res['short_url'], res['redirect_url'], res['expiry']))
             db.session.expunge(card)
             db.session.close()
         except KeyError:

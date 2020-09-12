@@ -45,7 +45,7 @@ def get_user_by_username(username):
     if auth_user == username:
         user = user_model.User.query.filter_by(username=username).scalar()
         if user is not None:
-            return jsonify(user.__repr__()), 200
+            return jsonify({'result': user.__repr__()}), 200
         else:
             return s_vars.user_not_exist, 404
     else:
@@ -97,7 +97,7 @@ def update_user_by_username(username):
                 update_user.email = data['email'] if 'email' in keys else update_user.email
                 update_user.last_updated = datetime.utcnow()
                 db.session.commit()
-                return jsonify(update_user.__repr__()), 200
+                return jsonify({'result': update_user.__repr__()}), 200
             else:
                 return s_vars.user_not_exist, 404
         else:
@@ -185,11 +185,11 @@ def check_if_can_login(username):
         user = user_model.User.query.filter_by(username=username).first()
         if user is not None:
             if user.check_password(data['secret']):
-                res = {'response': 'Can login'}
+                res = {'result': user.__repr__()}
+                return jsonify(res), 200
             else:
-                res = {'response': 'Can\'t login'}
-            return jsonify(res), 200
-        else:
-            return s_vars.user_not_exist, 404
+                res = {'result': 'Can\'t login'}
+                return jsonify(res), 403
+        return s_vars.user_not_exist, 404
     else:
         return s_vars.not_authorized, 401

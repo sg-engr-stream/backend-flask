@@ -51,8 +51,12 @@ def add_card():
                 send_mail(user.email, 'ShortUrl - Create Request', '''Hi {0},
                 You have created new shorturl with below details:
                 Name: {0},
-                
-                '''.format(user.name))
+                Title: {1},
+                Description: {2},
+                ShortUrl: {3},
+                RedirectUrl: {4},
+                Expiry: {5}
+                '''.format(res.name, res.title, res.description, res.short_url, res.redirect_url, res.expiry))
             db.session.expunge(card)
             db.session.close()
         except KeyError:

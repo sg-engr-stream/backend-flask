@@ -10,6 +10,7 @@ import services.static_vars as s_vars
 import services.auth_service as au_ser
 from services.generators import id_gen
 from services.email_service import send_mail
+import smtplib
 
 
 @app.route(s_vars.api_v1 + '/card/add/', methods=['POST'])
@@ -41,7 +42,7 @@ def add_card():
                 title=data['title'],
                 description=data['description'],
                 icon_url=data['icon_url'] if 'icon_url' in keys else None,
-                short_url=data['host'] + '/' + short_url,
+                short_url=short_url,
                 redirect_url=data['redirect_url'],
                 expiry=parser.parse(data['expiry']) if 'expiry' in keys else None,
             )
@@ -57,13 +58,15 @@ def add_card():
                 ShortUrl: {3},
                 RedirectUrl: {4},
                 Expiry: {5}
-                '''.format(res['owner'], res['title'], res['description'], res['short_url'], res['redirect_url'], res['expiry']))
+                '''.format(res['owner'], res['title'], res['description'], request.host_url + res['short_url'], res['redirect_url'], res['expiry']))
             db.session.expunge(card)
             db.session.close()
         except KeyError:
             return s_vars.bad_request, 400
         except exc.IntegrityError:
             return s_vars.duplicate_record, 409
+        except smtplib.SMTPException:
+            return s_vars.mail_sending_failed, 501
         return jsonify(res), 200
 
 

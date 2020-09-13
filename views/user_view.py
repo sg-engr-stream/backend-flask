@@ -8,6 +8,7 @@ import services.auth_service as au_ser
 from services.generators import code_gen
 from services.email_service import send_mail
 from services.common_service import change_user_activation, delete_user
+import smtplib
 
 
 @app.route(s_vars.api_v1 + '/user/add/', methods=['POST'])
@@ -36,6 +37,8 @@ def add_user():
     except exc.IntegrityError as e:
         logging.error(e)
         return s_vars.user_already_exist, 409
+    except smtplib.SMTPException:
+        return s_vars.mail_sending_failed, 501
     return res, 200
 
 
@@ -156,13 +159,18 @@ def action_by_username(action_type):
                         return s_vars.invalid_code, 401
                 except KeyError:
                     return s_vars.bad_request, 400
+                except smtplib.SMTPException:
+                    return s_vars.mail_sending_failed, 501
             elif action_type == 'resend_verification':
                 update_user.verification_code = code_gen()
                 update_user.set_verification_expiry()
-                send_mail(update_user.email, 'Welcome to ShortUrl', 'Verification Code: {}'.format(
-                    update_user.verification_code
-                ))
-                msg_str = ', verification code resent.'
+                try:
+                    send_mail(update_user.email, 'Welcome to ShortUrl', 'Verification Code: {}'.format(
+                        update_user.verification_code
+                    ))
+                    msg_str = ', verification code resent.'
+                except smtplib.SMTPException:
+                    return s_vars.mail_sending_failed, 501
             else:
                 return s_vars.action_not_available, 404
             update_user.last_updated = datetime.utcnow()

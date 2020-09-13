@@ -5,7 +5,7 @@ env:
 - CODACY_PROJECT_TOKEN=268cf68dda144158a111126e1c7983b1
 install:
 - pip install -r requirements.txt
-script: coverage run -m pytest
+script: coverage run -m pytest ./tests/
 after_success:
   - bash <(curl -s https://codecov.io/bash)
   - ls

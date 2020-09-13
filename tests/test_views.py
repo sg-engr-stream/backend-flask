@@ -109,8 +109,7 @@ def test_add_pub_card(app, client):
         'title': 'test pub card',
         'description': 'test public card',
         'redirect_url': 'https://www.google.com/',
-        'short_url': 'test_url_pub',
-        'host': 'https://short-url-stage.herokuapp.com/'
+        'short_url': 'test_url_pub'
     }
     res = client.post('/api/v1/card/add/',
                       headers={'Content-Type': 'application/json'},
@@ -123,8 +122,7 @@ def test_add_pvt_card(app, client):
         'title': 'test pvt card',
         'description': 'test pvt card',
         'redirect_url': 'https://www.google.com/',
-        'short_url': 'test_url_pvt',
-         'host': 'https://short-url-stage.herokuapp.com/'
+        'short_url': 'test_url_pvt'
     }
     res = client.post('/api/v1/card/add/',
                       headers={'shorturl-access-token': encode('test', 'alpha').split(' ')[1],

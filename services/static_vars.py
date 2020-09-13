@@ -22,4 +22,5 @@ with app.app_context():
 
     cannot_give_card_access = jsonify({'response': 'Cannot give access. You are read only or not authorized.'})
     cannot_change_owner = jsonify({'response': 'Ownership cannot be changed for public owned cards not created by you.'})
+    mail_sending_failed = jsonify({'response': 'Error occurred during triggering e-mail.'})
     api_v1 = '/api/v1'

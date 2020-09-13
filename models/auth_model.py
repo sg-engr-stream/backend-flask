@@ -13,6 +13,7 @@ class User(db.Model):
     verification_code = db.Column(db.String(6))
     verification_code_expiry = db.Column(db.DateTime, nullable=False)
     deactivated = db.Column(db.Boolean, default=False)
+    reset_token = db.Column(db.String(25))
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow)
 

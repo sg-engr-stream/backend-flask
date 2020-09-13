@@ -5,7 +5,7 @@ import models.auth_model as user_model
 from datetime import datetime
 import services.static_vars as s_vars
 import services.auth_service as au_ser
-from services.generators import code_gen
+from services.generators import code_gen, id_gen
 from services.email_service import send_mail
 from services.common_service import change_user_activation, delete_user
 import smtplib
@@ -53,6 +53,20 @@ def get_user_by_username(username):
             return s_vars.user_not_exist, 404
     else:
         return s_vars.not_authorized, 401
+
+
+@app.route(s_vars.api_v1 + '/user/email_available/', methods=['POST'])
+def get_email_avaialability():
+    """Get username availability from db"""
+    data = request.json
+    try:
+        user_from_db = user_model.User.query.filter_by(email=data['email']).first()
+        if user_from_db is None:
+            return s_vars.user_available, 200
+        else:
+            return s_vars.user_already_exist, 409
+    except KeyError:
+        return s_vars.bad_request, 400
 
 
 @app.route(s_vars.api_v1 + '/user/available/<username>', methods=['GET'])
@@ -127,6 +141,58 @@ def update_pass_by_username(username):
             return s_vars.user_not_exist, 404
     else:
         return s_vars.not_authorized, 401
+
+
+@app.route(s_vars.api_v1 + '/user/password_reset/', methods=['POST'])
+def password_reset_by_email():
+    data = request.json
+    if 'email' not in list(data.keys()):
+        return s_vars.bad_request, 400
+    update_user = user_model.User.query.filter_by(email=data['email']).first()
+    if update_user is not None:
+        update_user.reset_token = id_gen(25)
+        update_user.last_updated = datetime.utcnow()
+        db.session.commit()
+        try:
+            send_mail(update_user.email, 'Password Reset Link', '''Hi {},
+            Click or open the provided URL to change your password.\n\n {}
+            '''.format(update_user.name,
+                       request.origin + s_vars.front_end_prefix + 'password_reset/' + update_user.reset_token + '/' + update_user.username))
+        except smtplib.SMTPException:
+            return s_vars.error_try_again, 501
+        res = {'result': 'Password reset link sent for user {}'.format(update_user.email)}
+        return jsonify(res), 200
+    else:
+        return s_vars.user_not_exist, 404
+
+
+@app.route(s_vars.api_v1 + '/user/update_password_by_token/', methods=['POST'])
+def password_update_by_token():
+    data = request.json
+    try:
+        update_user = user_model.User.query.filter_by(username=data['username']).first()
+        if update_user is not None:
+            if update_user.reset_token != data['token'] or update_user.reset_token is None:
+                return jsonify({'response': 'Token incorrect or expired'}), 401
+            old_token = update_user.reset_token
+            update_user.set_password(data['secret'])
+            update_user.reset_token = None
+            update_user.last_updated = datetime.utcnow()
+            db.session.commit()
+            try:
+                send_mail(update_user.email, 'Password Updated', '''Hi {},
+                Your password is updated
+                '''.format(update_user.name))
+            except smtplib.SMTPException:
+                update_user.reset_token = old_token
+                db.session.commit()
+                return s_vars.error_try_again, 501
+            res = {'result': 'Password reset link sent for user {}'.format(update_user.email)}
+            return jsonify(res), 200
+        else:
+            return s_vars.user_not_exist, 404
+    except KeyError:
+        return s_vars.bad_request, 400
 
 
 @app.route(s_vars.api_v1 + '/user/action/<action_type>/', methods=['POST'])

@@ -46,6 +46,7 @@ import models.group_cards
 import views.user_view
 import views.card_view
 import views.card_access_view
+import views.group_view
 
 
 @app.route('/')

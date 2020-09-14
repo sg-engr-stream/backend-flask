@@ -133,16 +133,22 @@ def test_add_pvt_card(app, client):
 
 def test_get_pub_details(app, client):
     card_from_db = Card.query.filter_by(short_url='test_url_pub').first()
-    res = client.get('/api/v1/card/id/'+card_from_db.card_id,
-                      headers={'Content-Type': 'application/json'})
+    data = {
+        'card_id': [card_from_db.card_id]
+    }
+    res = client.post('/api/v1/card/id/',
+                      headers={'Content-Type': 'application/json'}, data=json.dumps(data))
     assert res.status_code == 200 or res.status_code == 409
 
 
 def test_get_pvt_details(app, client):
     card_from_db = Card.query.filter_by(short_url='test_url_pvt').first()
-    res = client.get('/api/v1/card/id/' + card_from_db.card_id,
+    data = {
+        'card_id': [card_from_db.card_id]
+    }
+    res = client.get('/api/v1/card/id/',
                       headers={'shorturl-access-token': encode('test', 'alpha').split(' ')[1],
-                               'Content-Type': 'application/json'})
+                               'Content-Type': 'application/json'}, data=json.dumps(data))
     assert res.status_code == 200 or res.status_code == 409
 
 
@@ -154,16 +160,22 @@ def test_get_short_url_availability(app, client):
 
 def test_activate_pub_card(app, client):
     card_from_db = Card.query.filter_by(short_url='test_url_pub').first()
-    res = client.get('/api/v1/card/id/' + card_from_db.card_id,
-                     headers={'Content-Type': 'application/json'})
+    data = {
+        'card_id': [card_from_db.card_id]
+    }
+    res = client.get('/api/v1/card/id/',
+                     headers={'Content-Type': 'application/json'}, data=json.dumps(data))
     assert res.status_code == 200
 
 
 def test_activate_pvt_card(app, client):
     card_from_db = Card.query.filter_by(short_url='test_url_pvt').first()
-    res = client.get('/api/v1/card/id/' + card_from_db.card_id,
+    data = {
+        'card_id': [card_from_db.card_id]
+    }
+    res = client.get('/api/v1/card/id/',
                      headers={'shorturl-access-token': encode('test', 'alpha').split(' ')[1],
-                              'Content-Type': 'application/json'})
+                              'Content-Type': 'application/json'}, data=json.dumps(data))
     assert res.status_code == 200
 
 

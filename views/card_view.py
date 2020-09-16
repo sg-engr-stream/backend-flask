@@ -14,6 +14,7 @@ import services.static_vars as s_vars
 import services.auth_service as au_ser
 from services.generators import id_gen
 from services.email_service import send_mail
+from views.group_view import get_group_data
 import smtplib
 
 
@@ -185,7 +186,7 @@ def return_data_for_profile():
         auth_status, auth_user = au_ser.check_auth_token(request.headers)
         if username != auth_user:
             return s_vars.not_authorized, 401
-        result = {'owner': [], 'shared_with_me': [], 'groups_owned': [], 'groups_shared_with_me': []}
+        result = {'owner': [], 'shared_with_me': [], 'groups_owned': [], 'groups_shared_with_me': [], 'cards_in_group': []}
 
         cards_owned = Card.query.filter(Card.owner == username).all()
         result['owner'] = [card.__repr__() for card in cards_owned]
@@ -202,21 +203,27 @@ def return_data_for_profile():
                 card['access_type'] = access_types[i]
                 result['shared_with_me'].append(card)
 
-        groups_owned = [{'title': group.title, 'group_id': group.group_id} for group in Group.query.filter(Group.owner == username).all()]
+        groups_owned = [group.__repr__() for group in Group.query.filter(Group.owner == username).all()]
+        for group in groups_owned:
+            group['access_type'] = 'RW'
         groups_owned_ids = [g['group_id'] for g in groups_owned]
         result['groups_owned'] = groups_owned
 
-        groups_shared_with_me = [[group.__repr__() for group in
-                                 GroupAccess.query.filter(GroupAccess.username == username,
-                                                         GroupAccess.access_type == access_t).all()] for access_t in
-                                access_types]
-        for i in range(0, len(groups_shared_with_me)):
-            group_ids_to_fetch = [group_access['group_id'] for group_access in groups_shared_with_me[i] if group_access['group_id'] not in groups_owned_ids]
-            groups = [group.__repr__() for group in Group.query.filter(
-                Group.group_id.in_(group_ids_to_fetch)).all()]
-            for group in groups:
-                result['groups_shared_with_me'].append({'title': group.title, 'group_id': group.group_id, 'access_type': access_types[i]})
+        groups_shared_with_me = [group_a.__repr__() for group_a in
+                                 GroupAccess.query.filter(GroupAccess.username == username).all()]
 
+        group_ids_to_fetch = [group_access['group_id'] for group_access in groups_shared_with_me if group_access['group_id'] not in groups_owned_ids]
+        access_type_for_group = {}
+        for group_access in groups_shared_with_me:
+            if group_access['group_id'] not in groups_owned_ids:
+                access_type_for_group[group_access['group_id']] = group_access['access_type']
+        groups = [group.__repr__() for group in Group.query.filter(
+            Group.group_id.in_(group_ids_to_fetch)).all()]
+        for group in groups:
+            group['access_type'] = access_type_for_group[group['group_id']]
+            result['groups_shared_with_me'].append(group)
+        cards_in_group, st = get_group_data([g['group_id'] for g in result['groups_owned']] + [g['group_id'] for g in result['groups_shared_with_me']])
+        result['cards_in_group'] = cards_in_group.json['result']
         return jsonify({'result': result})
     except KeyError:
         return s_vars.bad_request, 400

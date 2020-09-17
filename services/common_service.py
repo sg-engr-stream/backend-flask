@@ -23,6 +23,20 @@ def access_from_card_access(card_id, auth_user):
     return res
 
 
+def access_from_group_access(group_id, auth_user):
+    group_from_group_access = [GroupAccess.query.filter_by(group_id=group_id, username=username,
+                                                        access_status=True).first()
+                             for username in ['public', auth_user]]
+    res = ''
+    for item in group_from_group_access:
+        if item is not None:
+            if item.access_type == 'RW':
+                return 'RW'
+            else:
+                res = 'RO'
+    return res
+
+
 def change_user_activation(username, state):
     """state true means activate, false means deactivate"""
     user = user_model.User.query.filter_by(username=username).first()

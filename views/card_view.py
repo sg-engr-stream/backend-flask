@@ -6,6 +6,7 @@ from models.card_model import Card
 from models.card_access_model import CardAccess
 from models.group_model import Group
 from models.group_access_model import GroupAccess
+from models.group_cards import GroupCards
 from services.common_service import access_from_card_access, change_card_activation, delete_card, \
     check_expiry_and_return
 from datetime import datetime
@@ -85,11 +86,15 @@ def get_card():
     result_arr = []
     card_from_db = Card.query.filter(Card.card_id.in_(data['card_id'])).all()
     for card in card_from_db:
-        acc = access_from_card_access(card.card_id, auth_user)
+        acc = 'RW' if auth_user == card.owner else access_from_card_access(card.card_id, auth_user)
         if auth_user == card.owner or card.owner == 'public' or acc != '':
+            user_access = [card_a.__repr__() for card_a in CardAccess.query.filter(CardAccess.card_id == card.card_id).all()]
+
             res = card.__repr__()
             res['access_type'] = acc
+            res['user_access_list'] = user_access
             result_arr.append(res)
+
     if len(result_arr) > 0:
         return jsonify({'result': result_arr}), 200 if len(result_arr) == len(data['card_id']) else 201
     else:
@@ -106,10 +111,10 @@ def get_availability_su(short_url):
         return s_vars.short_url_not_available, 409
 
 
-@app.route(s_vars.api_v1 + '/card/action/<type>/', methods=['POST'])
+@app.route(s_vars.api_v1 + '/card/action/<action_type>', methods=['POST'])
 def action_for_card(action_type):
     data = request.json
-    if 'card_id' not in list(data.keys()):
+    if 'card_ids' not in list(data.keys()):
         return s_vars.bad_request, 400
     if 'username' in list(data.keys()):
         owner = data['username']
@@ -117,64 +122,74 @@ def action_for_card(action_type):
         owner = 'public'
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
     try:
-        card_from_db = Card.query.filter_by(card_id=data['card_id']).first()
+        card_from_db = Card.query.filter(Card.card_id.in_(data['card_ids'])).all()
     except KeyError:
         return s_vars.bad_request, 400
-    if card_from_db is None:
+    if len(card_from_db) == 0:
         return s_vars.card_not_exist, 404
-    elif auth_user == owner or card_from_db.owner == 'public' or access_from_card_access(data['card_id'],
-                                                                                         auth_user) == 'RW':
-        msg_str = ''
-        if action_type == 'deactivate':
-            change_card_activation(card_from_db.card_id, False)
-            msg_str = 'deactivated'
-        elif action_type == 'activate':
-            change_card_activation(card_from_db.card_id, True)
-            msg_str = 'activated'
-        elif action_type == 'delete':
-            delete_card(card_from_db.card_id)
-            msg_str = 'deleted'
-        else:
-            return s_vars.action_not_available, 404
-        card_from_db.last_updated = datetime.utcnow()
-        db.session.commit()
-        res = {'result': card_from_db.__repr__()}
-        return jsonify(res), 200
     else:
-        return s_vars.not_authorized, 401
+        result = {'result': []}
+        for card in card_from_db:
+            if auth_user == owner or card.owner == 'public' or access_from_card_access(card.card_id,
+                                                                                                 auth_user) == 'RW':
+                card_title = card.title
+                if action_type == 'deactivate':
+                    change_card_activation(card.card_id, False)
+                    card.last_updated = datetime.utcnow()
+                    result['result'].append(card.__repr__())
+                elif action_type == 'activate':
+                    change_card_activation(card.card_id, True)
+                    card.last_updated = datetime.utcnow()
+                    result['result'].append(card.__repr__())
+                elif action_type == 'delete':
+                    delete_card(card.card_id)
+                    result['result'].append('Deleted : {}'.format(card_title))
+
+                db.session.commit()
+        return jsonify(result), 200
 
 
-@app.route(s_vars.api_v1 + '/card/update/<card_id>/', methods=['POST'])
+@app.route(s_vars.api_v1 + '/card/update/<card_id>', methods=['POST'])
 def update_card(card_id):
     data = request.json
-    if 'username' in list(data.keys()):
-        owner = data['username']
-    else:
-        owner = 'public'
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
     try:
         card_from_db = Card.query.filter_by(card_id=card_id).first()
+        if card_from_db is None:
+            return s_vars.card_not_exist, 404
+        elif auth_user == '':
+            return s_vars.not_authorized, 401
+        elif card_from_db.owner == auth_user or card_from_db.owner == 'public' or access_from_card_access(card_id, auth_user) == 'RW':
+            keys = list(data.keys())
+            if card_from_db.owner == 'public' and card_from_db.created_by != auth_user and 'owner' in keys:
+                return s_vars.cannot_change_owner, 403
+            if 'owner' in keys:
+                if data['owner'] != 'public':
+                    user = user_model.User.query.filter_by(username=data['owner']).first()
+                    if user is not None:
+                        card_from_db.owner = data['owner'] if 'owner' in keys else card_from_db.owner
+                    else:
+                        return s_vars.user_not_exist, 404
+                else:
+                    card_from_db.owner = 'public'
+            card_from_db.title = data['title'] if 'title' in keys else card_from_db.title
+            card_from_db.description = data['description'] if 'description' in keys else card_from_db.description
+            card_from_db.icon_url = data['icon_url'] if 'icon_url' in keys else card_from_db.icon_url
+            card_from_db.short_url = data['short_url'] if 'short_url' in keys else card_from_db.short_url
+            card_from_db.redirect_url = data['redirect_url'] if 'redirect_url' in keys else card_from_db.redirect_url
+            card_from_db.expiry = parser.parse(data['expiry']) if 'expiry' in keys else card_from_db.expiry
+            card_from_db.status = data['status'] if 'status' in keys else card_from_db.status
+
+            card_from_db.last_updated = datetime.utcnow()
+            db.session.commit()
+            card_json_data = card_from_db.__repr__()
+            card_json_data['user_access_list'] = [card_a.__repr__() for card_a in CardAccess.query.filter(CardAccess.card_id == card_from_db.card_id).all()]
+            res = {'result': card_json_data}
+            return jsonify(res), 200
+        else:
+            return s_vars.not_authorized, 401
     except KeyError:
         return s_vars.bad_request, 400
-    if card_from_db is None:
-        return s_vars.card_not_exist, 404
-    elif auth_user == owner or card_from_db.owner == 'public' or access_from_card_access(card_id, auth_user) == 'RW':
-        keys = list(data.keys())
-        if card_from_db.owner == 'public' and card_from_db.created_by != owner and 'owner' in keys:
-            return s_vars.cannot_change_owner, 403
-        card_from_db.owner = data['owner'] if 'owner' in keys else card_from_db.owner
-        card_from_db.title = data['title'] if 'title' in keys else card_from_db.title
-        card_from_db.description = data['description'] if 'description' in keys else card_from_db.description
-        card_from_db.icon_url = data['icon_url'] if 'icon_url' in keys else card_from_db.icon_url
-        card_from_db.short_url = data['short_url'] if 'short_url' in keys else card_from_db.short_url
-        card_from_db.redirect_url = data['redirect_url'] if 'redirect_url' in keys else card_from_db.redirect_url
-        card_from_db.expiry = parser.parse(data['expiry']) if 'expiry' in keys else card_from_db.expiry
-        card_from_db.last_updated = datetime.utcnow()
-        db.session.commit()
-        res = {'result': card_from_db.__repr__()}
-        return jsonify(res), 200
-    else:
-        return s_vars.not_authorized, 401
 
 
 @app.route(s_vars.api_v1 + '/profile/get_data/', methods=['POST'])
@@ -186,10 +201,14 @@ def return_data_for_profile():
         auth_status, auth_user = au_ser.check_auth_token(request.headers)
         if username != auth_user:
             return s_vars.not_authorized, 401
-        result = {'owner': [], 'shared_with_me': [], 'groups_owned': [], 'groups_shared_with_me': [], 'cards_in_group': []}
+        result = {'owner': [], 'shared_with_me': [], 'cards_in_group': []}
 
         cards_owned = Card.query.filter(Card.owner == username).all()
         result['owner'] = [card.__repr__() for card in cards_owned]
+
+        for card_details in result['owner']:
+            card_details['user_access_list'] = [card_a.__repr__() for card_a in
+                                CardAccess.query.filter(CardAccess.card_id == card_details['card_id']).all()]
 
         cards_shared_with_me = [[card.__repr__() for card in
                                  CardAccess.query.filter(CardAccess.username == username,
@@ -201,13 +220,18 @@ def return_data_for_profile():
                 Card.card_id.in_(card_ids_to_fetch)).all()]
             for card in cards:
                 card['access_type'] = access_types[i]
+                card['user_access_list'] = [card_a.__repr__() for card_a in
+                                                    CardAccess.query.filter(
+                                                        CardAccess.card_id == card['card_id']).all()]
                 result['shared_with_me'].append(card)
 
         groups_owned = [group.__repr__() for group in Group.query.filter(Group.owner == username).all()]
         for group in groups_owned:
             group['access_type'] = 'RW'
+            group['user_access_list'] = [group_a.__repr__() for group_a in
+                                        GroupAccess.query.filter(
+                                            GroupAccess.group_id == group['group_id']).all()]
         groups_owned_ids = [g['group_id'] for g in groups_owned]
-        result['groups_owned'] = groups_owned
 
         groups_shared_with_me = [group_a.__repr__() for group_a in
                                  GroupAccess.query.filter(GroupAccess.username == username).all()]
@@ -221,8 +245,11 @@ def return_data_for_profile():
             Group.group_id.in_(group_ids_to_fetch)).all()]
         for group in groups:
             group['access_type'] = access_type_for_group[group['group_id']]
-            result['groups_shared_with_me'].append(group)
-        cards_in_group, st = get_group_data([g['group_id'] for g in result['groups_owned']] + [g['group_id'] for g in result['groups_shared_with_me']])
+            group['user_access_list'] = [group_a.__repr__() for group_a in
+                                         GroupAccess.query.filter(
+                                             GroupAccess.group_id == group['group_id']).all()]
+
+        cards_in_group, st = get_group_data(groups_owned_ids + groups)
         result['cards_in_group'] = cards_in_group.json['result']
         return jsonify({'result': result})
     except KeyError:
@@ -247,3 +274,43 @@ def return_redirect_url(short_url):
                 return check_expiry_and_return(card_with_short_url.expiry, card_with_short_url.redirect_url)
             else:
                 return s_vars.not_authorized, 401
+
+
+@app.route(s_vars.api_v1 + '/card/valid_list/', methods=['POST'])
+def get_list_of_valid_cards_owned():
+    data = request.json
+    try:
+        auth_status, auth_user = au_ser.check_auth_token(request.headers)
+        cards_owned = []
+        if auth_user == data['username']:
+            cards_owned = Card.query.filter_by(owner=auth_user).all()
+            cards_owned = [card.__repr__() for card in cards_owned if card.expiry is None or card.expiry > datetime.utcnow()]
+        return jsonify({'result': cards_owned}), 200
+    except KeyError:
+        return s_vars.bad_request, 400
+
+
+@app.route(s_vars.api_v1 + '/card/add_to_group/', methods=['POST'])
+def add_card_to_existing_group():
+    data = request.json
+    try:
+        auth_status, auth_user = au_ser.check_auth_token(request.headers)
+        if auth_user == '':
+            auth_user = 'public'
+        cards_from_db = list(set([card.card_id for card in Card.query.filter(Card.card_id.in_(data['card_ids'])).all()]))
+        group = Group.query.filter_by(group_id=data['group_id']).first()
+        if group is None:
+            return s_vars.group_not_exist, 404
+        else:
+            result = {'result': []}
+            for card_id in cards_from_db:
+                group_card = GroupCards(group_id=group.group_id, card_id=card_id)
+                try:
+                    db.session.add(group_card)
+                    db.session.commit()
+                    result['result'].append({card_id: 'Added in group: ' + group.group_id})
+                except exc.IntegrityError:
+                    result['result'].append({card_id: 'Already exist'})
+            return jsonify(result), 200
+    except KeyError:
+        return s_vars.bad_request, 400

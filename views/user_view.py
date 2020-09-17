@@ -238,7 +238,7 @@ def action_by_username(action_type):
                 except smtplib.SMTPException:
                     return s_vars.mail_sending_failed, 501
             else:
-                return s_vars.action_not_available, 404
+                return s_vars.invalid_action, 404
             update_user.last_updated = datetime.utcnow()
             db.session.commit()
             res = {'response': 'User \'{}\'{}'.format(update_user.username, msg_str)}

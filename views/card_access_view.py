@@ -41,7 +41,7 @@ def add_card_access():
                             db.session.commit()
                             resp.append({username: True})
                         except exc.IntegrityError as e:
-                            resp.append({username: False})
+                            resp.append({username: 'Already Exist'})
                             logging.info(e)
             return jsonify({'result': resp}), 200
         else:
@@ -50,15 +50,43 @@ def add_card_access():
         return s_vars.bad_request, 400
 
 
-@app.route(s_vars.api_v1 + '/card_access/list/', methods=['POST'])
-def get_list_by_access_type():
+@app.route(s_vars.api_v1 + '/card_access/action/', methods=['POST'])
+def remove_card_access():
     data = request.json
     try:
         auth_status, auth_user = au_ser.check_auth_token(request.headers)
-        cards_owned = []
-        if auth_user == data['username']:
-            cards_owned = Card.query.filter_by(owner=auth_user).all()
-            cards_owned = [card.__repr__() for card in cards_owned if card.expiry is None or card.expiry > datetime.utcnow()]
-        return jsonify({'result': cards_owned}), 200
+        card_from_db = Card.query.filter_by(card_id=data['card_id']).first()
+
+        if card_from_db.owner == auth_user or access_from_card_access(card_from_db.card_id, auth_user) == 'RW':
+            card_access = CardAccess.query.filter_by(card_id=card_from_db.card_id, username=data['username']).first()
+            if card_access is None:
+                return jsonify(
+                    {'result': '{} does not have access for card {}'.format(data['username'], card_from_db.title)}), 201
+            msg = ''
+            if data['action_name'] == 'delete':
+                db.session.delete(card_access)
+                msg = 'Deleted {} access from card {}'.format(data['username'], card_from_db.title)
+            elif data['action_name'] == 'enable':
+                card_access.access_status = True
+                card_access.last_updated = datetime.utcnow()
+                msg = 'Update: {} access from disable to enable'.format(data['username'])
+            elif data['action_name'] == 'disable':
+                card_access.access_status = False
+                card_access.last_updated = datetime.utcnow()
+                msg = 'Update: {} access from enable to disable'.format(data['username'])
+            elif data['action_name'] == 'access_RO':
+                card_access.access_type = 'RO'
+                card_access.last_updated = datetime.utcnow()
+                msg = 'Update: {} access from RW to RO'.format(data['username'])
+            elif data['action_name'] == 'access_RW':
+                card_access.access_type = 'RW'
+                card_access.last_updated = datetime.utcnow()
+                msg = 'Update: {} access from RO to RW'.format(data['username'])
+            else:
+                return s_vars.invalid_action, 403
+            db.session.commit()
+            return jsonify({'result': msg}), 200
+        else:
+            return s_vars.not_authorized, 401
     except KeyError:
         return s_vars.bad_request, 400

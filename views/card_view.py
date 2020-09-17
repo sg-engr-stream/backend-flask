@@ -64,7 +64,7 @@ def add_card():
                 ShortUrl: {3},
                 RedirectUrl: {4},
                 Expiry: {5}
-                '''.format(res['owner'], res['title'], res['description'], request.origin + '/' + res['short_url'],
+                '''.format(res['owner'], res['title'], res['description'], request.origin if request.origin is not None else '' + '/' + res['short_url'],
                            res['redirect_url'], res['expiry']))
             db.session.expunge(card)
             db.session.close()

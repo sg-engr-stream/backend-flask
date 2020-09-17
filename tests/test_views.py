@@ -161,7 +161,7 @@ def test_get_short_url_availability(app, client):
 def test_activate_pub_card(app, client):
     card_from_db = Card.query.filter_by(short_url='test_url_pub').first()
     data = {
-        'card_id': [card_from_db.card_id]
+        'card_ids': [card_from_db.card_id]
     }
     res = client.post('/api/v1/card/action/activate',
                      headers={'Content-Type': 'application/json'}, data=json.dumps(data))
@@ -171,7 +171,7 @@ def test_activate_pub_card(app, client):
 def test_activate_pvt_card(app, client):
     card_from_db = Card.query.filter_by(short_url='test_url_pvt').first()
     data = {
-        'card_id': [card_from_db.card_id]
+        'card_ids': [card_from_db.card_id]
     }
     res = client.post('/api/v1/card/action/activate',
                      headers={'shorturl-access-token': encode('test', 'alpha').split(' ')[1],

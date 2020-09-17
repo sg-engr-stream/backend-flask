@@ -86,6 +86,7 @@ def get_group_data(group_ids=None):
                 user_access_type = 'RW'
 
             if user_has_access:
+                group = Group.query.filter_by(group_id=group_id).first()
                 card_ids = [gc.card_id for gc in GroupCards.query.filter_by(group_id=group_id).all()]
                 cards = [card.__repr__() for card in Card.query.filter(Card.card_id.in_(card_ids)).all()]
                 for card in cards:
@@ -104,7 +105,9 @@ def get_group_data(group_ids=None):
                                                   GroupAccess.query.filter(
                                                       GroupAccess.group_id == group.group_id).all()]
                 result[group_id]['group_details'] = group_json
-        return jsonify({'result': result}), 200
+                return jsonify({'result': result}), 200
+            else:
+                return s_vars.not_authorized, 401
     except KeyError:
         return s_vars.bad_request, 400
 

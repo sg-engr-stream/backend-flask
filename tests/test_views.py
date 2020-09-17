@@ -146,7 +146,7 @@ def test_get_pvt_details(app, client):
     data = {
         'card_id': [card_from_db.card_id]
     }
-    res = client.get('/api/v1/card/id/',
+    res = client.post('/api/v1/card/id/',
                       headers={'shorturl-access-token': encode('test', 'alpha').split(' ')[1],
                                'Content-Type': 'application/json'}, data=json.dumps(data))
     assert res.status_code == 200 or res.status_code == 409
@@ -163,7 +163,7 @@ def test_activate_pub_card(app, client):
     data = {
         'card_id': [card_from_db.card_id]
     }
-    res = client.get('/api/v1/card/id/',
+    res = client.post('/api/v1/card/action/activate',
                      headers={'Content-Type': 'application/json'}, data=json.dumps(data))
     assert res.status_code == 200
 
@@ -173,7 +173,7 @@ def test_activate_pvt_card(app, client):
     data = {
         'card_id': [card_from_db.card_id]
     }
-    res = client.get('/api/v1/card/id/',
+    res = client.post('/api/v1/card/action/activate',
                      headers={'shorturl-access-token': encode('test', 'alpha').split(' ')[1],
                               'Content-Type': 'application/json'}, data=json.dumps(data))
     assert res.status_code == 200

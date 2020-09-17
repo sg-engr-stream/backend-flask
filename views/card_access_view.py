@@ -61,7 +61,7 @@ def remove_card_access():
             card_access = CardAccess.query.filter_by(card_id=card_from_db.card_id, username=data['username']).first()
             if card_access is None:
                 return jsonify(
-                    {'result': '{} does not have access for card {}'.format(data['username'], card_from_db.title)}), 201
+                    {'result': '{} does not have access for card {}'.format(data['username'], card_from_db.title)}), 200
             msg = ''
             if data['action_name'] == 'delete':
                 db.session.delete(card_access)

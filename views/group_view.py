@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from sqlalchemy import exc
-from app import app, db, logging
+from app import app, db
 import models.auth_model as user_model
 from models.card_model import Card
 from models.card_access_model import CardAccess
@@ -10,7 +10,6 @@ from models.group_cards import GroupCards
 from services.common_service import access_from_card_access, change_group_activation, delete_group, \
     access_from_group_access
 from datetime import datetime
-from dateutil import parser
 import services.static_vars as s_vars
 import services.auth_service as au_ser
 from services.generators import id_gen
@@ -58,6 +57,8 @@ def add_group():
         return jsonify({'result': result}), 200
     except KeyError:
         return s_vars.bad_request, 400
+    except exc.IntegrityError:
+        return jsonify({'result': 'Duplicate record'}), 409
 
 
 @app.route(s_vars.api_v1 + '/group/id/', methods=['POST'])
@@ -103,7 +104,7 @@ def get_group_data(group_ids=None):
                                                   GroupAccess.query.filter(
                                                       GroupAccess.group_id == group.group_id).all()]
                 result[group_id]['group_details'] = group_json
-        return jsonify({'result': result}), 201
+        return jsonify({'result': result}), 200
     except KeyError:
         return s_vars.bad_request, 400
 

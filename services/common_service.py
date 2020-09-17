@@ -106,5 +106,5 @@ def delete_card(card_id):
 def check_expiry_and_return(expiry, redirect_url):
     if expiry is not None:
         if expiry < datetime.utcnow():
-            return jsonify({'result': 'expired'}), 201
+            return jsonify({'result': 'expired'}), 200
     return jsonify({'result': 'success', 'redirect_url': redirect_url}), 200

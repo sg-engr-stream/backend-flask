@@ -59,7 +59,7 @@ def remove_change_group_access():
             group_access = GroupAccess.query.filter_by(group_id=group_from_db.group_id, username=data['username']).first()
             if group_access is None:
                 return jsonify(
-                    {'result': '{} does not have access for group {}'.format(data['username'], group_from_db.title)}), 201
+                    {'result': '{} does not have access for group {}'.format(data['username'], group_from_db.title)}), 200
             msg = ''
             if data['action_name'] == 'delete':
                 db.session.delete(group_access)

@@ -96,7 +96,7 @@ def get_card():
             result_arr.append(res)
 
     if len(result_arr) > 0:
-        return jsonify({'result': result_arr}), 200 if len(result_arr) == len(data['card_id']) else 201
+        return jsonify({'result': result_arr}), 200 if len(result_arr) == len(data['card_id']) else 200
     else:
         return s_vars.card_not_exist, 404
 

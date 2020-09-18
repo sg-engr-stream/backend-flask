@@ -243,13 +243,15 @@ def return_data_for_profile():
                 access_type_for_group[group_access['group_id']] = group_access['access_type']
         groups = [group.__repr__() for group in Group.query.filter(
             Group.group_id.in_(group_ids_to_fetch)).all()]
+        addition_group_ids = []
         for group in groups:
+            addition_group_ids.append(group['group_id'])
             group['access_type'] = access_type_for_group[group['group_id']]
             group['user_access_list'] = [group_a.__repr__() for group_a in
                                          GroupAccess.query.filter(
                                              GroupAccess.group_id == group['group_id']).all()]
 
-        cards_in_group, st = get_group_data(groups_owned_ids + groups)
+        cards_in_group, st = get_group_data(list(set(groups_owned_ids + addition_group_ids)))
         result['cards_in_group'] = cards_in_group.json['result']
         return jsonify({'result': result})
     except KeyError:

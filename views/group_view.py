@@ -105,9 +105,7 @@ def get_group_data(group_ids=None):
                                                   GroupAccess.query.filter(
                                                       GroupAccess.group_id == group.group_id).all()]
                 result[group_id]['group_details'] = group_json
-                return jsonify({'result': result}), 200
-            else:
-                return s_vars.not_authorized, 401
+        return jsonify({'result': result}), 200
     except KeyError:
         return s_vars.bad_request, 400
 

@@ -5,11 +5,11 @@ from email.utils import formatdate
 
 
 def send_mail(recipient, subject, body):
-    FROM = 'shorturl@hiddenworld.in'
+    FROM = 'nitinkumaradm@gmail.com'
     TO = recipient if type(recipient) is list else [recipient]
     SUBJECT = subject
     TEXT = body
-    secret = '5UJ4XWK5u3JEB'
+    secret = 'KillerBee@123'
     message = MIMEMultipart(From=FROM, Date=formatdate(localtime=True), Subject=SUBJECT)
     message['subject'] = SUBJECT
     message['to'] = ','.join(TO)

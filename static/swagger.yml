@@ -1,0 +1,166 @@
+openapi: 3.0.0
+info:
+  title: N4NITIN
+  description: N4NITIN ShortUrl Backend APIs.
+  version: 1.0.0
+servers:
+  - url: https://short-url-prod.herokuapp.com/api/v1
+    description: Production Server API (All APIs not available here, still working to add them)
+paths:
+  /user/email_available/:
+    post:
+      tags:
+        - User
+      summary: Returns if email is available to register account.
+      description: Get email availability.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Available
+        '400':
+          description: Bad Request
+        '409':
+          description: Unavailable
+  /user/available/{username}:
+    get:
+      tags:
+        - User
+      summary: Returns if username is available to register account.
+      parameters:
+        - in: path
+          name: username
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Available
+        '403':
+          description: Forbidden
+        '409':
+          description: Unavailable
+      responseBody:
+        content:
+          application/json:
+            schema:
+              type: object
+  /user/add/:
+    post:
+      tags:
+        - User
+      summary: Register account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                username:
+                  type: string
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Added
+        '400':
+          description: Bad Request
+        '409':
+          description: Unavailable
+        '501':
+          description: Mail Sending Failed
+  /card/add/:
+    post:
+      tags:
+        - Card
+      summary: Add a ShortUrl.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                redirect_url:
+                  type: string
+      responses:
+        '200':
+          description: Added
+        '400':
+          description: Bad Request
+        '409':
+          description: Unavailable
+        '501':
+          description: Mail Sending Failed
+
+  /card/id/:
+    post:
+      tags:
+        - Card
+      summary: Retrieve shorturl details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                card_id:
+                  type: array
+                  example: ["eycdgotMByfxBLkYP0fg"]
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+      responseBody:
+        content:
+          application/json:
+            schema:
+              type: object
+
+  /group/id/:
+    post:
+      tags:
+        - Group
+      summary: Retrieve group details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                group_ids:
+                  type: array
+                  example: ["3yFF7YNi59hNFqEfvMiB"]
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+      responseBody:
+        content:
+          application/json:
+            schema:
+              type: object
+

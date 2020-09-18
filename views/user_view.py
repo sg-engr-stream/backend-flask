@@ -29,7 +29,7 @@ def add_user():
         db.session.add(new_user)
         db.session.commit()
         res = {'result': new_user.__repr__()}
-        send_mail(data['email'], 'Welcome to ShortUrl', 'Verification Code: {}'.format(verification_code))
+        send_mail(data['email'], 'Welcome to N4NITIN', 'Verification Code: {}'.format(verification_code))
         db.session.expunge(new_user)
         db.session.close()
     except KeyError:
@@ -219,7 +219,7 @@ def action_by_username(action_type):
                     if update_user.verification_code == data['verification_code']:
                         update_user.verified = True
                         msg_str = ' verified'
-                        send_mail(update_user.email, 'Account Verified at ShortUrl',
+                        send_mail(update_user.email, 'Account Verified at N4NITIN',
                                   'Hi, Your account has been verified')
                     else:
                         return s_vars.invalid_code, 401
@@ -231,7 +231,7 @@ def action_by_username(action_type):
                 update_user.verification_code = code_gen()
                 update_user.set_verification_expiry()
                 try:
-                    send_mail(update_user.email, 'Welcome to ShortUrl', 'Verification Code: {}'.format(
+                    send_mail(update_user.email, 'Welcome to N4NITIN', 'Verification Code: {}'.format(
                         update_user.verification_code
                     ))
                     msg_str = ', verification code resent.'

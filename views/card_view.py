@@ -56,7 +56,7 @@ def add_card():
             db.session.commit()
             res = card.__repr__()
             if owner != 'public':
-                send_mail(user.email, 'ShortUrl - Create Request', '''Hi {0},
+                send_mail(user.email, 'N4NITIN - Create Request', '''Hi {0},
                 You have created new shorturl with below details:
                 Owner: {0},
                 Title: {1},

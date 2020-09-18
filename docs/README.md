@@ -2,6 +2,16 @@
 
 Currently running at [Heroku](https://short-url-prod.herokuapp.com/)
 
+API Dashboard available at [Dashboard](https://short-url-prod.herokuapp.com/dashboard).
+
+Credentials:
+ 
+| Username  | Password |
+| --------- | ---------|
+| admin     | admin    |
+
+Swagger-UI available at [Swagger-UI](https://short-url-prod.herokuapp.com/api/docs/). It's incomplete though.
+
 This project is generated using python 3.
 
 ## Requirements

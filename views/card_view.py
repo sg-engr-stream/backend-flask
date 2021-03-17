@@ -65,7 +65,7 @@ def add_card():
                 RedirectUrl: {4},
                 Expiry: {5}
                 '''.format(res['owner'], res['title'], res['description'],
-                           (request.origin if request.origin is not None else '') + '/' + short_url,
+                           (request.origin if request.origin is not None else 'http://www.n4nit.in') + '/' + short_url,
                            res['redirect_url'], res['expiry']))
             db.session.expunge(card)
             db.session.close()

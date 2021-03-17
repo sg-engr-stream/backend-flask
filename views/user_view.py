@@ -157,11 +157,10 @@ def password_reset_by_email():
             send_mail(update_user.email, 'Password Reset Link', '''Hi {},
             Click or open the provided URL to change your password.\n\n {}
             '''.format(update_user.name,
-                       request.origin if request.origin is not None else 'http://www.n4nit.in' + s_vars.front_end_prefix
-                                                                         + 'password_reset/' + update_user.reset_token
-                                                                         + '/' + update_user.username))
-        except smtplib.SMTPException:
-            return s_vars.error_try_again, 501
+                       f"{request.origin if request.origin is not None else 'http://www.n4nit.in'}{s_vars.front_end_prefix}password_reset/{update_user.reset_token}/{update_user.username}"))
+        except smtplib.SMTPException as smtp_err:
+            return jsonify({'response': 'Try again later.', 'error': str(smtp_err)})
+            # return s_vars.error_try_again, 501
         res = {'result': 'Password reset link sent for user {}'.format(update_user.email)}
         return jsonify(res), 200
     else:

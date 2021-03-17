@@ -159,8 +159,8 @@ def password_reset_by_email():
             '''.format(update_user.name,
                        f"{request.origin if request.origin is not None else 'http://www.n4nit.in'}{s_vars.front_end_prefix}password_reset/{update_user.reset_token}/{update_user.username}"))
         except smtplib.SMTPException as smtp_err:
-            return jsonify({'response': 'Try again later.', 'error': str(smtp_err)})
-            # return s_vars.error_try_again, 501
+            # return jsonify({'response': 'Try again later.', 'error': str(smtp_err)})
+            return s_vars.error_try_again, 501
         res = {'result': 'Password reset link sent for user {}'.format(update_user.email)}
         return jsonify(res), 200
     else:

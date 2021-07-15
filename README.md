@@ -41,3 +41,13 @@ Create or own app using heroku cli (app name needs to be unique, below will not 
 - [Travis-CI](https://travis-ci.com/github/sg-engr-stream/backend-flask)
 - [Codecov.io](https://codecov.io/gh/sg-engr-stream/backend-flask)
 - [Codacy.com](https://app.codacy.com/gh/sg-engr-stream/backend-flask/dashboard)
+
+
+## Delete All Data From FMD Tables
+- `delete from public."fmdStackLine"`;
+- `delete from public."fmdOutlier"`;
+- `delete from public."fmdRequest"`;
+- `delete from public."fmdEndpoint"`;
+- `delete from public."fmdCodeLine"`;
+- `delete from public."fmdCustomGraph"`;
+- `delete from public."fmdCustomGraphData"`;

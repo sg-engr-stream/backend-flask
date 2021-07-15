@@ -51,3 +51,7 @@ Create or own app using heroku cli (app name needs to be unique, below will not 
 - `delete from public."fmdCodeLine"`;
 - `delete from public."fmdCustomGraph"`;
 - `delete from public."fmdCustomGraphData"`;
+
+## Google Email
+- `https://accounts.google.com/b/0/DisplayUnlockCaptcha`
+- `https://myaccount.google.com/lesssecureapps`

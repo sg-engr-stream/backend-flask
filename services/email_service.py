@@ -16,8 +16,9 @@ def send_mail(recipient, subject, body):
     message['to'] = ','.join(TO)
     message.attach(MIMEText(TEXT))
 
-    server = smtplib.SMTP(os.environ.get('Email_SMTP'), os.environ.get('Email_Port'))
+    server = smtplib.SMTP(os.environ.get('Email_SMTP'), int(os.environ.get('Email_Port')))
     try:
+        server.connect(os.environ.get('Email_SMTP'), int(os.environ.get('Email_Port')))
         server.ehlo()
         server.starttls()
         server.login(FROM, secret)

@@ -6,7 +6,7 @@ from logging.handlers import RotatingFileHandler
 from datetime import datetime
 from time import strftime
 import traceback
-import flask_monitoringdashboard as dashboard
+# import flask_monitoringdashboard as dashboard
 from flask_sqlalchemy import SQLAlchemy
 import socket
 import services.psql_config
@@ -17,15 +17,15 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}})
 app_settings = ''
 if socket.gethostname() == 'DESKTOP-PHOENIX':
     app_settings = services.psql_config.DevelopmentConfig
-    dashboard.config.init_from('dboard/config_local.cfg')
+    # dashboard.config.init_from('dboard/config_local.cfg')
 else:
     app_settings = services.psql_config.ProductionConfig
-    dashboard.config.init_from('dboard/config_prod.cfg')
+    # dashboard.config.init_from('dboard/config_prod.cfg')
 
 app.config.from_object(app_settings)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-dashboard.bind(app)
+# dashboard.bind(app)
 
 SWAGGER_URL = '/api/docs'
 API_URL = '/static/swagger.yml'

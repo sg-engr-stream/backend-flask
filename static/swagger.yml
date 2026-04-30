@@ -4,7 +4,7 @@ info:
   description: N4NITIN ShortUrl Backend APIs.
   version: 1.0.0
 servers:
-  - url: https://short-url-prod.herokuapp.com/api/v1
+  - url: https://shorturl-backend.onrender.com/api/v1
     description: Production Server API (All APIs not available here, still working to add them)
 paths:
   /user/email_available/:

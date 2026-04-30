@@ -14,7 +14,7 @@ class Config(object):
         db_uri = env.local.DB_URI
     else:
         db_uri = env.production.DB_URI
-    SQLALCHEMY_DATABASE_URI = db_uri
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DB_URI') or db_uri
 
 
 class ProductionConfig(Config):

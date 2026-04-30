@@ -64,12 +64,14 @@ import models.group_model
 import models.group_access_model
 import models.group_cards
 
-import views.user_view
-import views.card_view
+from views.user_view import user_bp
+from views.card_view import card_bp
 import views.card_access_view
 import views.group_view
 import views.group_access_view
 
+app.register_blueprint(user_bp)
+app.register_blueprint(card_bp)
 
 @app.route('/')
 def hello_world():
@@ -113,4 +115,5 @@ def exceptions(e):
 
 
 if __name__ == '__main__':
+    print("URL Map:", app.url_map)
     app.run()

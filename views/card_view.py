@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import Blueprint, request, jsonify
 from sqlalchemy import exc
 from app import app, db, logging
 import models.auth_model as user_model
@@ -19,7 +19,9 @@ from views.group_view import get_group_data
 import smtplib
 
 
-@app.route(s_vars.api_v1 + '/card/add/', methods=['POST'])
+card_bp = Blueprint('card', __name__, url_prefix=s_vars.api_v1 + '/card')
+
+@card_bp.route('/add/', methods=['POST'])
 def add_card():
     data = request.json
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
@@ -78,7 +80,7 @@ def add_card():
         return jsonify(res), 200
 
 
-@app.route(s_vars.api_v1 + '/card/id/', methods=['POST'])
+@card_bp.route('/id/', methods=['POST'])
 def get_card():
     data = request.json
     if 'card_id' not in list(data.keys()):
@@ -103,7 +105,7 @@ def get_card():
         return s_vars.card_not_exist, 404
 
 
-@app.route(s_vars.api_v1 + '/card/available/<short_url>', methods=['GET'])
+@card_bp.route('/available/<short_url>', methods=['GET'])
 def get_availability_su(short_url):
     """Get short url availability from db"""
     card_from_db = Card.query.filter_by(short_url=short_url).first()
@@ -153,7 +155,7 @@ def action_for_card(action_type):
         return jsonify(result), 200
 
 
-@app.route(s_vars.api_v1 + '/card/update/<card_id>', methods=['POST'])
+@card_bp.route('/update/<card_id>', methods=['POST'])
 def update_card(card_id):
     data = request.json
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
@@ -198,7 +200,7 @@ def update_card(card_id):
         return s_vars.bad_request, 400
 
 
-@app.route(s_vars.api_v1 + '/profile/get_data/', methods=['POST'])
+@card_bp.route('/profile/get_data/', methods=['POST'])
 def return_data_for_profile():
     data = request.json
     access_types = ['RO', 'RW']
@@ -268,7 +270,7 @@ def return_data_for_profile():
         return s_vars.bad_request, 400
 
 
-@app.route(s_vars.api_v1 + '/short_url/<short_url>/', methods=['GET'])
+@card_bp.route('/short_url/<short_url>/', methods=['GET'])
 def return_redirect_url(short_url):
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
     if auth_user == '':
@@ -288,7 +290,7 @@ def return_redirect_url(short_url):
                 return s_vars.not_authorized, 401
 
 
-@app.route(s_vars.api_v1 + '/card/valid_list/', methods=['POST'])
+@card_bp.route('/valid_list/', methods=['POST'])
 def get_list_of_valid_cards_owned():
     data = request.json
     try:
@@ -303,7 +305,7 @@ def get_list_of_valid_cards_owned():
         return s_vars.bad_request, 400
 
 
-@app.route(s_vars.api_v1 + '/card/add_to_group/', methods=['POST'])
+@card_bp.route('/add_to_group/', methods=['POST'])
 def add_card_to_existing_group():
     data = request.json
     try:

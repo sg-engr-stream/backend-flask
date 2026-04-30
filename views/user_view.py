@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import Blueprint, request, jsonify
 from sqlalchemy import exc
 from app import app, db, logging
 import models.auth_model as user_model
@@ -10,8 +10,9 @@ from services.email_service import send_mail
 from services.common_service import change_user_activation, delete_user
 import smtplib
 
+user_bp = Blueprint('user', __name__, url_prefix=s_vars.api_v1 + '/user')
 
-@app.route(s_vars.api_v1 + '/user/add/', methods=['POST'])
+@user_bp.route('/add/', methods=['POST'])
 def add_user():
     data = request.json
     if data['username'] == 'public':
@@ -42,7 +43,7 @@ def add_user():
     return res, 200
 
 
-@app.route(s_vars.api_v1 + '/user/id/<username>', methods=['GET'])
+@user_bp.route('/id/<username>', methods=['GET'])
 def get_user_by_username(username):
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
     if auth_user == username:
@@ -55,7 +56,7 @@ def get_user_by_username(username):
         return s_vars.not_authorized, 401
 
 
-@app.route(s_vars.api_v1 + '/user/email_available/', methods=['POST'])
+@user_bp.route('/email_available/', methods=['POST'])
 def get_email_avaialability():
     """Get username availability from db"""
     data = request.json
@@ -69,7 +70,7 @@ def get_email_avaialability():
         return s_vars.bad_request, 400
 
 
-@app.route(s_vars.api_v1 + '/user/available/<username>', methods=['GET'])
+@user_bp.route('/available/<username>', methods=['GET'])
 def get_availability_user(username):
     """Get username availability from db"""
     if username == 'public':
@@ -82,7 +83,7 @@ def get_availability_user(username):
         return s_vars.user_already_exist, 409
 
 
-@app.route(s_vars.api_v1 + '/user/verify_status/<username>', methods=['GET'])
+@user_bp.route('/verify_status/<username>', methods=['GET'])
 def get_user_verification(username):
     """Get user verification from db"""
     user_from_db = user_model.User.query.filter_by(username=username).first()
@@ -99,7 +100,7 @@ def get_user_verification(username):
             return s_vars.not_authorized, 401
 
 
-@app.route(s_vars.api_v1 + '/user/update/<username>', methods=['POST'])
+@user_bp.route('/update/<username>', methods=['POST'])
 def update_user_by_username(username):
     data = request.json
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
@@ -123,7 +124,7 @@ def update_user_by_username(username):
         return s_vars.bad_request, 400
 
 
-@app.route(s_vars.api_v1 + '/user/update_pass/<username>', methods=['POST'])
+@user_bp.route('/update_pass/<username>', methods=['POST'])
 def update_pass_by_username(username):
     data = request.json
     if 'secret' not in list(data.keys()):
@@ -143,7 +144,7 @@ def update_pass_by_username(username):
         return s_vars.not_authorized, 401
 
 
-@app.route(s_vars.api_v1 + '/user/password_reset/', methods=['POST'])
+@user_bp.route('/password_reset/', methods=['POST'])
 def password_reset_by_email():
     data = request.json
     if 'email' not in list(data.keys()):
@@ -167,7 +168,7 @@ def password_reset_by_email():
         return s_vars.user_not_exist, 404
 
 
-@app.route(s_vars.api_v1 + '/user/update_password_by_token/', methods=['POST'])
+@user_bp.route('/update_password_by_token/', methods=['POST'])
 def password_update_by_token():
     data = request.json
     try:
@@ -196,7 +197,7 @@ def password_update_by_token():
         return s_vars.bad_request, 400
 
 
-@app.route(s_vars.api_v1 + '/user/action/<action_type>/', methods=['POST'])
+@user_bp.route('/action/<action_type>/', methods=['POST'])
 def action_by_username(action_type):
     data = request.json
     if 'username' not in list(data.keys()):
@@ -250,7 +251,7 @@ def action_by_username(action_type):
         return s_vars.not_authorized, 401
 
 
-@app.route(s_vars.api_v1 + '/user/login_check/<username>', methods=['POST'])
+@user_bp.route('/login_check/<username>', methods=['POST'])
 def check_if_can_login(username):
     data = request.json
     if 'secret' not in list(data.keys()):

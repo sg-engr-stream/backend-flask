@@ -20,9 +20,7 @@ def send_mail(recipient, subject, body):
     smtp_port = int(os.environ.get('Email_Port'))
     
     try:
-        server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
-        server.ehlo()
-        server.starttls()
+        server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=10)
         server.login(FROM, secret)
         server.sendmail(FROM, TO, message.as_string())
         server.quit()

@@ -115,7 +115,7 @@ def get_availability_su(short_url):
         return s_vars.short_url_not_available, 409
 
 
-@app.route(s_vars.api_v1 + '/card/action/<action_type>', methods=['POST'])
+@card_bp.route('/action/<action_type>', methods=['POST'])
 def action_for_card(action_type):
     data = request.json
     if 'card_ids' not in list(data.keys()):
@@ -200,7 +200,7 @@ def update_card(card_id):
         return s_vars.bad_request, 400
 
 
-@card_bp.route('/profile/get_data', methods=['POST'])
+@app.route(s_vars.api_v1 + '/profile/get_data/', methods=['POST'])
 def return_data_for_profile():
     data = request.json
     access_types = ['RO', 'RW']
@@ -270,7 +270,7 @@ def return_data_for_profile():
         return s_vars.bad_request, 400
 
 
-@card_bp.route('/short_url/<short_url>', methods=['GET'])
+@app.route(s_vars.api_v1 + '/short_url/<short_url>/', methods=['GET'])
 def return_redirect_url(short_url):
     auth_status, auth_user = au_ser.check_auth_token(request.headers)
     if auth_user == '':

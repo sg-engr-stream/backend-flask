@@ -70,6 +70,13 @@ import views.card_access_view
 import views.group_view
 import views.group_access_view
 
+
+@app.before_request
+def handle_preflight():
+    if request.method == 'OPTIONS':
+        return app.make_default_options_response()
+
+
 app.register_blueprint(user_bp)
 app.register_blueprint(card_bp)
 

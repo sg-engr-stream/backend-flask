@@ -16,13 +16,17 @@ def send_mail(recipient, subject, body):
     message['to'] = ','.join(TO)
     message.attach(MIMEText(TEXT))
 
-    server = smtplib.SMTP(os.environ.get('Email_SMTP'), int(os.environ.get('Email_Port')))
+    smtp_server = os.environ.get('Email_SMTP') or ''
+    smtp_port = int(os.environ.get('Email_Port'))
+    
     try:
-        server.connect(os.environ.get('Email_SMTP'), int(os.environ.get('Email_Port')))
+        server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
         server.ehlo()
         server.starttls()
         server.login(FROM, secret)
         server.sendmail(FROM, TO, message.as_string())
-        server.close()
+        server.quit()
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"SMTP Authentication Error: {str(e)}")
     except Exception as e:
         print(f"Email Exception: \n{str(e)}")

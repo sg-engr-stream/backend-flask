@@ -50,6 +50,7 @@ six==1.15.0
 SQLAlchemy==1.3.19
 toml==0.10.1
 translationstring==1.4
+typing_extensions
 tzlocal==2.1
 urllib3==1.25.10
 waitress==1.4.4
